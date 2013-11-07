@@ -1,4 +1,8 @@
 var io = require('socket.io-client');
+var fs = require('fs');
+var path = require('path');
+var loggerLib = new require('./lib/logger');
+var logger = new loggerLib();
 var config;
 var socket;
 
@@ -19,7 +23,7 @@ function init(){
 					config.collect[i].options
 				);
 			}catch(e){
-				console.log(e);
+				logger.log('error',e);
 			}
 		}
 	});
