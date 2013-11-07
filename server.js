@@ -29,10 +29,10 @@ function init(){
 	});
 }
 function findConfiguration(){
-	fs.exists(path.join('etc','crossmon','collect_config.json'),function(exists){
+	fs.exists(path.join('/etc','crossmon','collect_config.json'),function(exists){
 		if (exists){
 			try{
-				config = require(path.join('etc','crossmon','collect_config.json'));
+				config = require(path.join('/etc','crossmon','collect_config.json'));
 				init();
 			}catch(e){
 				logger.log('error','The configuration is invalid.');
