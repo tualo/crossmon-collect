@@ -1,0 +1,22 @@
+{
+	"name": "crossmon-collect",
+	"description": "Data Collector for Server-Monitoring-App written in JavaScript ",
+	"homepage": "http://tualo.de",
+	"main": "server.js",
+	"version": "0.0.1",
+	"engines": {
+		"node": ">=0.8.0"
+	},
+	"maintainers": [
+	{
+		"name": "Thomas Hoffmann",
+		"email": "thomas.hoffmann@tualo.de",
+		"url": "http://tualo.de/"
+	}
+	],
+	"readmeFilename": "README.md",
+	"license": "GPL/V3",
+	"dependencies": {
+		"socket.io-client": "*"
+	}
+}

@@ -1,0 +1,35 @@
+{
+	"collectServer": "127.0.0.1",
+	"collectPort": "7654",
+	"collect": [
+		{
+			"module": "crossmon-cpu-temp",
+			"interval": "1000",
+			"options": {
+				"scale": 1
+				}
+		},
+		{
+			"module": "crossmon-cpu",
+			"interval": "1000",
+			"options": {
+				"scale": 0.25,
+				"cpu-all": true,
+				"programms": [
+					{
+						"tag": "googlechrome",
+						"regex": "/Google Chrome\\.app/"
+					},
+					{
+						"tag": "mysqlserver",
+						"indexOf": "mysqld"
+					},
+					{
+						"tag": "apacheserver",
+						"indexOf": "httpd"
+					}
+				]
+			}
+		}
+	]
+}
