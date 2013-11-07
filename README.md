@@ -13,3 +13,10 @@ Installation
 ============
 
     npm install crossmon-collect
+
+A sample configuration file can be found in the module directory. 
+At the startup crossmon-collect searches for a configuration file. This is the search order:
+
+* /etc/crossmon/collect_config.json
+* [module-home-directory]/collect_config.json
+* [module-home-directory]/collect_config.sample.json
