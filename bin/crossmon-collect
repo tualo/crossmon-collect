@@ -1,0 +1,29 @@
+#!/usr/bin/env node
+
+
+var program = require('commander');
+var pjson = require('../package.json');
+//var findconfig = require('../lib/findconfig.js');
+
+program
+	.version(pjson.version)
+	.description('crossmon collecting sericve')
+	.option('start', 'Start the deamon')
+	.option('stop', 'Stop the deamon')
+	.parse(process.argv);
+
+var forever = require('forever');
+var path = require('path');
+if (program.start){
+	
+	forever.startDaemon(path.join(__dirname,'..','server.js'),{
+		uid: 'crossmon-collect'
+	});
+	
+	console.log(pjson.name+' started');
+}
+
+if (program.stop){
+	forever.stop('crossmon-collect');
+	console.log(pjson.name+' stoped');
+}

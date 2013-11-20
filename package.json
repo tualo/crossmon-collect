@@ -1,9 +1,9 @@
 {
 	"name": "crossmon-collect",
-	"description": "Data Collector for Server-Monitoring-App written in JavaScript ",
+	"description": "Data gatering service for crossmonnode",
 	"homepage": "http://tualo.de",
 	"main": "server.js",
-	"version": "0.0.3",
+	"version": "0.0.4",
 	"engines": {
 		"node": ">=0.8.0"
 	},
@@ -17,10 +17,19 @@
 	"readmeFilename": "README.md",
 	"license": "GPL/V3",
 	"dependencies": {
-		"socket.io-client": "*"
+		"socket.io-client": "*",
+		"forever": ">=0.10.9",
+		"commander": ">=2.0.0"
 	},
 	"repository" : {
 		"type" : "git",
-		"url" : "https://github.com/tualo/crossmon-server.git"
+		"url" : "https://github.com/tualo/crossmon-collect.git"
+	},
+	"keywords":[
+		"crossmon",
+		"chart"
+	],
+	"bin": {
+		"crossmon-collect": "./bin/crossmon-collect"
 	}
 }
