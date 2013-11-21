@@ -2,11 +2,12 @@ var io = require('socket.io-client');
 var fs = require('fs');
 var path = require('path');
 var loggerLib = new require('./lib/logger');
+var findconfig = new require('./lib/findconfig');
 var logger = new loggerLib();
 var config;
 var socket;
 
-function init(){
+function init(config,path){
 	socket = io.connect(config.collectServer,{
 		port: config.collectPort
 	});
@@ -16,9 +17,13 @@ function init(){
 			
 			logger.log('info','initialize collector: '+config.collect[i].module);
 			try{
+				var module = require(config.collect[i].module);
+				if (typeof module.mininterval=='undefined'){
+					module.mininterval = 1000; 
+				}
 				var interval = setInterval(
 					require(config.collect[i].module).monitor, 
-					config.collect[i].interval, 
+					Math.min(config.collect[i].interval,module.mininterval), 
 					socket,
 					config.collect[i].options
 				);
@@ -28,43 +33,5 @@ function init(){
 		}
 	});
 }
-function findConfiguration(){
-	fs.exists(path.join('/etc','crossmon','collect_config.json'),function(exists){
-		if (exists){
-			try{
-				config = require(path.join('/etc','crossmon','collect_config.json'));
-				init();
-			}catch(e){
-				logger.log('error','The configuration is invalid.');
-			}
-		}else{
-			fs.exists(path.join(__dirname,'collect_config.json'),function(exists){
-				if (exists){
-					try{
-						config = require(path.join(__dirname,'collect_config.json'));
-						init();
-					}catch(e){
-						logger.log('error','The configuration is invalid.');
-					}
-				}else{
-					fs.exists(path.join(__dirname,'collect_config.sample.json'),function(exists){
-						if (exists){
-							try{
-								config = require(path.join(__dirname,'collect_config.sample.json'));
-								logger.log('info','The sample configuration file will be loaded.');
-								init();
-							}catch(e){
-								logger.log('error','The configuration is invalid.');
-							}
-						}else{
-							logger.log('error','There is no configuration file.');
-							process.exit();
-						}
-					});
-				}
-			});
-		}
-	});
-}
 
-findConfiguration();
+findconfig.findConfiguration(init);
