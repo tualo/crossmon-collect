@@ -1,17 +1,28 @@
 #!/usr/bin/env node
 
 
+var fs = require('fs');
 var program = require('commander');
 var pjson = require('../package.json');
 var findconfig = require('../lib/findconfig.js');
 
 program
 	.version(pjson.version)
-	.description('crossmon collecting sericve')
-	.option('start', 'Start the deamon')
-	.option('stop', 'Stop the deamon')
-	.option('tx', 'testing')
-	.option('-t, --test <modulename>', 'testing the current configuration for the module, without sending data.')
+	.description('crossmon data gattering serivce')
+	
+	.option('start', 'start the deamon')
+	.option('stop', 'stop the deamon')
+	.option('restart', 'restarts the deamon')
+	.option('info', 'shows the configuration file')
+	
+	.option('enable <modulename>', 'enables or add the module to the configuration')
+	.option('disable <modulename>', 'disables the module to the configuration')
+	.option('interval <modulename>', 'sets the interval for the module, you must add the value parameter (in millisecods)')
+	.option('value <value>', 'the value to  be set')
+	.option('setup [<modulename>|server|port]', 'starts the setup rountine of the module, set the server or the port of the server')
+	
+	.option('test <modulename>', 'testing the current configuration for the module, without sending data.')
+	
 	.parse(process.argv);
 
 var forever = require('forever');
@@ -28,6 +39,182 @@ if (program.start){
 if (program.stop){
 	forever.stop('crossmon-collect');
 	console.log(pjson.name+' stoped');
+}
+
+
+if (program.restart){
+	forever.restart('crossmon-collect');
+	console.log(pjson.name+' restarted');
+}
+
+if (program.setup){
+	if (program.value){
+		findconfig.findConfiguration(function(config,path){
+			console.log('using configuration from '+path);
+			switch(program.setup){
+				case 'server':
+					config.collectServer = program.value;
+					fs.writeFile(path, JSON.stringify(config,null,4), function (err) {
+						if (err){
+							if (err.code==='EACCES'){
+								console.log('you cannot write to '+path);
+							}else{
+								console.log(err);
+							}
+							return;
+						}
+						console.log('the gattering service no send the data to '+program.value+':'+config.collectPort);
+						console.log('now you must restart the gattering service: crossmon-collect restart');
+					});
+					break;
+				case 'port':
+					if (isNaN(program.value)){console.log('you must enter a number'); return;}
+					program.value=program.value*1;
+					if ( program.value>65000 ){console.log('you must enter a number between 1 and 65000 '); return;}
+					if ( program.value<1 ){console.log('you must enter a number between 1 and 65000'); return;}
+					config.collectPort = program.value;
+					fs.writeFile(path, JSON.stringify(config,null,4), function (err) {
+						if (err){
+							if (err.code==='EACCES'){
+								console.log('you cannot write to '+path);
+							}else{
+								console.log(err);
+							}
+							return;
+						}
+						console.log('the gattering service no send the data to '+config.collectServer+':'+config.collectPort);
+						console.log('make sue this server is in the allowed client list of the storage server');
+						console.log('now you must restart the gattering service: crossmon-collect restart');
+					});
+					break;
+				default:
+					break;
+			}
+		}) // findconfig.findConfiguration
+	}else{
+		console.log('there is no value given');
+	}
+}
+
+if (program.enable){
+	findconfig.findConfiguration(function(config,path){
+		console.log('using configuration from '+path);
+		if (typeof config.collect=='undefined'){
+			config.collect = [];
+		}
+		var item_index = -1;
+		for(var i in config.collect){
+			if (config.collect[i].module==program.enable){
+				item_index = i;
+				break;
+			}
+		}
+		if (item_index==-1){ // there is no current config, so add them
+			config.collect.push({
+				module: program.enable,
+				enabled: true,
+				interval: 1000,
+				options: {}
+			});
+			item_index=config.collect.length-1;
+		}
+		config.collect[item_index].enabled=true;
+		fs.writeFile(path, JSON.stringify(config,null,4), function (err) {
+			if (err){
+				if (err.code==='EACCES'){
+					console.log('you cannot write to '+path);
+				}else{
+					console.log(err);
+				}
+				return;
+			}
+			console.log('the config is written');
+			console.log('now you must restart the gattering service: crossmon-collect restart');
+		});
+	})
+}
+if (program.info){
+	findconfig.findConfiguration(function(config,path){
+		console.log('using configuration from '+path);
+		console.log(JSON.stringify(config,null,4));
+	});
+}
+
+if (program.disable){
+	findconfig.findConfiguration(function(config,path){
+		console.log('using configuration from '+path);
+		if (typeof config.collect=='undefined'){
+			config.collect = [];
+		}
+		var item_index = -1;
+		for(var i in config.collect){
+			if (config.collect[i].module==program.disable){
+				item_index = i;
+				break;
+			}
+		}
+		if (item_index==-1){ // there is no current config, so add them
+			config.collect.push({
+				module: program.disable,
+				enabled: false,
+				interval: 1000,
+				options: {}
+			});
+			item_index=config.collect.length-1;
+		}
+		config.collect[item_index].enabled=false;
+		fs.writeFile(path, JSON.stringify(config,null,4), function (err) {
+			if (err){
+				if (err.code==='EACCES'){
+					console.log('you cannot write to '+path);
+				}else{
+					console.log(err);
+				}
+				return;
+			}
+			console.log('the config is written');
+			console.log('now you must restart the gattering service: crossmon-collect restart');
+		});
+	})
+}
+
+if (program.interval){
+	if (program.value){
+		if (isNaN(program.value)){console.log('you must enter a number'); return;}
+		program.value = program.value*1;
+		findconfig.findConfiguration(function(config,path){
+			console.log('using configuration from '+path);
+			if (typeof config.collect=='undefined'){
+				config.collect = [];
+			}
+			var item_index = -1;
+			for(var i in config.collect){
+				if (config.collect[i].module==program.interval){
+					item_index = i;
+					break;
+				}
+			}
+			if (item_index==-1){ // there is no current config, so add them
+				console.log('the module is not set up');
+			}else{
+				config.collect[item_index].interval=program.value;
+				fs.writeFile(path, JSON.stringify(config,null,4), function (err) {
+					if (err){
+						if (err.code==='EACCES'){
+							console.log('you cannot write to '+path);
+						}else{
+							console.log(err);
+						}
+						return;
+					}
+					console.log('the config is written');
+					console.log('now you must restart the gattering service: crossmon-collect restart');
+				});
+			}
+		})
+	}else{
+		console.log('there is no value given');
+	}
 }
 
 
