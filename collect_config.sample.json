@@ -33,18 +33,18 @@
 			"options": {
 				"scale": 0.25,
 				"cpu-all": true,
-				"programms": [
+				"programs": [
 					{
 						"tag": "googlechrome",
-						"regex": "/Google Chrome\\.app/"
+						"contains": "Google Chrome"
 					},
 					{
 						"tag": "mysqlserver",
-						"indexOf": "mysqld"
+						"contains": "mysqld"
 					},
 					{
 						"tag": "apacheserver",
-						"indexOf": "httpd"
+						"contains": "httpd"
 					}
 				]
 			}

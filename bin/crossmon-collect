@@ -48,11 +48,12 @@ if (program.restart){
 }
 
 if (program.setup){
-	if (program.value){
+	
 		findconfig.findConfiguration(function(config,path){
 			console.log('using configuration from '+path);
 			switch(program.setup){
 				case 'server':
+					if (program.value){
 					config.collectServer = program.value;
 					fs.writeFile(path, JSON.stringify(config,null,4), function (err) {
 						if (err){
@@ -66,8 +67,12 @@ if (program.setup){
 						console.log('the gattering service no send the data to '+program.value+':'+config.collectPort);
 						console.log('now you must restart the gattering service: crossmon-collect restart');
 					});
+					}else{
+					console.log('there is no value given');
+					}
 					break;
 				case 'port':
+					if (program.value){
 					if (isNaN(program.value)){console.log('you must enter a number'); return;}
 					program.value=program.value*1;
 					if ( program.value>65000 ){console.log('you must enter a number between 1 and 65000 '); return;}
@@ -86,14 +91,16 @@ if (program.setup){
 						console.log('make sue this server is in the allowed client list of the storage server');
 						console.log('now you must restart the gattering service: crossmon-collect restart');
 					});
+					}else{
+					console.log('there is no value given');
+					}
 					break;
 				default:
+					setup_module(program.setup,config,path)
 					break;
 			}
 		}) // findconfig.findConfiguration
-	}else{
-		console.log('there is no value given');
-	}
+	
 }
 
 if (program.enable){
@@ -238,7 +245,6 @@ if (program.test){
 				var module;
 				try{
 					module = require(item.module);
-					
 				}catch(e){
 					if (e.code){
 						if (e.code=='MODULE_NOT_FOUND'){
@@ -270,4 +276,76 @@ if (program.test){
 			console.log('There is no collect section.');
 		}
 	});
+}
+
+function setup_module(module,config,path){
+	
+	if(config.collect){
+			var item;
+			var item_index=-1;
+			for(var i in config.collect){
+				if (config.collect[i].module==module){
+					item = config.collect[i];
+					item_index = i;
+				}
+			}
+			if (item){
+				
+				var module;
+				try{
+					module = require(item.module);
+				}catch(e){
+					if (e.code){
+						if (e.code=='MODULE_NOT_FOUND'){
+							console.log('The module *'+item.module+'* was not found, maybe you must install it. (npm install '+item.module+' -g)');
+						}else{
+							console.log(e);
+						}
+					}else{
+						console.log(e);
+					}
+				}
+				if (module){
+				
+					if (typeof module.monitor=='function'){
+						if (typeof module.setup=='function'){
+							module.setup(item.options,function(err,item_back){
+								if (err){
+									if (err.code===0){
+										console.log('exit by user');
+									}else{
+										console.log('ERROR');
+									}
+								}else{
+									config.collect[item_index].options = item_back;
+									fs.writeFile(path, JSON.stringify(config,null,4), function (err) {
+										if (err){
+											if (err.code==='EACCES'){
+												console.log('you cannot write to '+path);
+											}else{
+												console.log(err);
+											}
+											return;
+										}
+										console.log('the config is written');
+										console.log('now you must restart the gattering service: crossmon-collect restart');
+									});
+									//console.log('DONE:');
+									//console.log(JSON.stringify(item_back,null,4));
+								}
+							});
+						}else{
+							console.log('The module *'+item.module+'* is not valid for setup by crossmon-collect. The function setup is missing.');
+						}
+					}else{
+						console.log('The module *'+item.module+'* is not valid for crossmon-collect. The function monitor is missing.');
+					}
+				
+				}
+			}else{
+				console.log('There is no such module configured.');
+			}
+		}else{
+			console.log('There is no collect section.');
+		}
 }
