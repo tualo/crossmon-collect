@@ -3,13 +3,15 @@
 
 var program = require('commander');
 var pjson = require('../package.json');
-//var findconfig = require('../lib/findconfig.js');
+var findconfig = require('../lib/findconfig.js');
 
 program
 	.version(pjson.version)
 	.description('crossmon collecting sericve')
 	.option('start', 'Start the deamon')
 	.option('stop', 'Stop the deamon')
+	.option('tx', 'testing')
+	.option('-t, --test <modulename>', 'testing the current configuration for the module, without sending data.')
 	.parse(process.argv);
 
 var forever = require('forever');
@@ -26,4 +28,59 @@ if (program.start){
 if (program.stop){
 	forever.stop('crossmon-collect');
 	console.log(pjson.name+' stoped');
+}
+
+
+if (program.test){
+	findconfig.findConfiguration(function(config,path){
+		console.log('Testing configuration from '+path);
+		console.log('Testing module '+program.test);
+		
+		if(config.collect){
+			var item;
+			for(var i in config.collect){
+				if (config.collect[i].module==program.test){
+					item = config.collect[i];
+				}
+			}
+			if (item){
+				if (typeof item.options=='undefined'){
+					console.log('There are no options configured');
+					return;
+				}
+				var module;
+				try{
+					module = require(item.module);
+					
+				}catch(e){
+					if (e.code){
+						if (e.code=='MODULE_NOT_FOUND'){
+							console.log('The module *'+item.module+'* was not found, maybe you must install it. (npm install '+item.module+' -g)');
+						}else{
+							console.log(e);
+						}
+					}else{
+						console.log(e);
+					}
+				}
+				if (module){
+				
+					if (typeof module.monitor=='function'){
+						if (typeof module.test=='function'){
+							module.test(item.options);
+						}else{
+							console.log('The module *'+item.module+'* is not valid for testing crossmon-collect. The function test is missing.');
+						}
+					}else{
+						console.log('The module *'+item.module+'* is not valid for crossmon-collect. The function monitor is missing.');
+					}
+				
+				}
+			}else{
+				console.log('There is no such module configured.');
+			}
+		}else{
+			console.log('There is no collect section.');
+		}
+	});
 }
