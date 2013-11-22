@@ -14,28 +14,32 @@ function init(config,path){
 	
 	socket.on('connect', function () {
 		for(var i in config.collect){
-			
-			logger.log('info','initialize collector: '+config.collect[i].module);
-			try{
-				var module = require(config.collect[i].module);
-				if (typeof module.mininterval=='undefined'){
-					module.mininterval = 1000; 
+			if (typeof config.collect[i].enabled=='undefined'){
+				config.collect[i].enabled=true; // default: any module is enabled
+			}
+			if (config.collect[i].enabled===true){
+				logger.log('info','initialize collector: '+config.collect[i].module);
+				try{
+					var module = require(config.collect[i].module);
+					if (typeof module.mininterval=='undefined'){
+						module.mininterval = 1000; 
+					}
+					
+					// initial monitoring
+					if (Math.max(config.collect[i].interval,module.mininterval)>10000){
+						require(config.collect[i].module).monitor(socket,config.collect[i].options);
+					}
+					
+					var interval = setInterval(
+						require(config.collect[i].module).monitor, 
+						Math.max(config.collect[i].interval,module.mininterval), 
+						socket,
+						config.collect[i].options
+					);
+					
+				}catch(e){
+					logger.log('error',e);
 				}
-				
-				// initial monitoring
-				if (Math.max(config.collect[i].interval,module.mininterval)>10000){
-					require(config.collect[i].module).monitor(socket,config.collect[i].options);
-				}
-				
-				var interval = setInterval(
-					require(config.collect[i].module).monitor, 
-					Math.max(config.collect[i].interval,module.mininterval), 
-					socket,
-					config.collect[i].options
-				);
-				
-			}catch(e){
-				logger.log('error',e);
 			}
 		}
 	});
