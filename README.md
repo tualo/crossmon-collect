@@ -1,7 +1,7 @@
 Description
 ===========
 
-Crossmon-collect is the gatering service for crossmon-server. 
+Crossmon-collect is the gattering service for crossmon-server. 
 Crossmon-collect starts periodically the collecting modules 
 and send the collected datas to the crossmon-server.
 
