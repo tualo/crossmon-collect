@@ -21,12 +21,19 @@ function init(config,path){
 				if (typeof module.mininterval=='undefined'){
 					module.mininterval = 1000; 
 				}
+				
+				// initial monitoring
+				if (Math.max(config.collect[i].interval,module.mininterval)>10000){
+					require(config.collect[i].module).monitor(socket,config.collect[i].options);
+				}
+				
 				var interval = setInterval(
 					require(config.collect[i].module).monitor, 
-					Math.min(config.collect[i].interval,module.mininterval), 
+					Math.max(config.collect[i].interval,module.mininterval), 
 					socket,
 					config.collect[i].options
 				);
+				
 			}catch(e){
 				logger.log('error',e);
 			}
