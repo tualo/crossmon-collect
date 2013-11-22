@@ -48,7 +48,7 @@ After that you can setup the module by running.
 
     crossmon-collect setup crossmon-cpu
 
-Depending on the installed module the setup will guide you thru the configuration.
+Depending on the installed module the setup will guide you through the configuration.
 
 Running
 =======
