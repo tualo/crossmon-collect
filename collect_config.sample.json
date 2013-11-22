@@ -3,35 +3,10 @@
 	"collectPort": "7654",
 	"collect": [
 		{
-			"module": "crossmon-cpu-temp",
-			"interval": "1000",
-			"options": {
-				"scale": 1,
-				"watch": [
-					{
-						"tag": "Core 0",
-						"indexOf": "Core 0:"
-					},
-					{
-						"tag": "Core 1",
-						"indexOf": "Core 1:"
-					},
-					{
-						"tag": "Core 2",
-						"indexOf": "Core 2:"
-					},
-					{
-						"tag": "Core 3",
-						"indexOf": "Core 3:"
-					}
-				]
-			}
-		},
-		{
 			"module": "crossmon-cpu",
 			"interval": "1000",
 			"options": {
-				"scale": 0.25,
+				"scale": 1,
 				"cpu-all": true,
 				"programs": [
 					{
